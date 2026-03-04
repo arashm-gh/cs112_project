@@ -27,12 +27,12 @@ class Game:
         self.assets = None
         self.tools = [
             ("Battery", Battery, "battery"),
-            ("Switch", Switch, "switch_off"),   # we'll update texture based on state
-            ("Wire", Wire, "wire"),              # you may need a wire.png
+            ("Switch", Switch, "switch_off"), # we'll update texture based on state
+            ("Wire", Wire, "wire"),
             ("Bulb", Bulb, "bulb_off"),
         ]
         self.selected_tool_index = 0
-        self.tool_rects = []              # will be filled each frame
+        self.tool_rects = [] # will be filled each frame
 
     def run(self):
         while self.__running:
@@ -80,7 +80,7 @@ class Game:
             img = self.assets.get(comp.texture)
             if img:
                 self.screen.blit(img, (x,y))
-            else: # fallback if no texture is found
+            else: # fallback if no texture is found - used to draw wires
                 color = (0, 255, 0) if comp.output else (255, 0, 0)
                 pg.draw.rect(self.screen, color, (x, y + self.cell_size // 4, self.cell_size, self.cell_size // 2))
             # Optionally draw pins
@@ -94,7 +94,7 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.gs = GameState.QUIT
-            if event.type == pg.KEYDOWN:
+            if event.type ==pg.KEYDOWN:
                 if event.key == pg.K_a:
                     print("Input")
             if event.type == pg.MOUSEBUTTONDOWN:
@@ -103,7 +103,7 @@ class Game:
                     for rect, idx in self.tool_rects:
                         if rect.collidepoint(event.pos):
                             self.selected_tool_index = idx
-                            return   # don't also place a component
+                            return # don't also place a component
 
                     # then grid
                     mx, my = event.pos
@@ -121,7 +121,7 @@ class Game:
                             # place new component
                             self.circuit.add_component(
                                 self.tools[self.selected_tool_index][1](gx, gy, 0)
-                            ) # basically, chose the class in the tools array and place it at position gx and gy with rotation of 0
+                            ) # basically, choose the class in the tools array and place it at position gx and gy with rotation of 0
                             self.circuit.simulate()
                 elif event.button == 3: # remove component with right click
                     mx, my = event.pos
@@ -146,5 +146,5 @@ class Game:
             font = pg.font.Font(None, 24)
             text = font.render(name, True, (0,0,0))
             self.screen.blit(text, (x+5, y+5))
-            self.tool_rects.append((rect, i))   # store index for later
+            self.tool_rects.append((rect, i)) # store index for later
             x += w + 5

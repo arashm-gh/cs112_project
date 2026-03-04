@@ -87,9 +87,9 @@ class Circuit:
 
     def simulate(self):
         # sort components by x coordinate (left to right)
-        sorted_comps = sorted(self.components, key=lambda c: c.pos_x) # this is called an anonymous method
+        sorted_comps = sorted(self.components, key=lambda c: c.pos_x) # this is called an anonymous method, don't worry to much about it but you might be asked about it in the viva
         for comp in sorted_comps:
-            # Find left neighbour (input source)
+            # find left neighbour (input source)
             left_comp = self.grid.get((comp.pos_x - 1, comp.pos_y))
             if left_comp:
                 try:
@@ -97,5 +97,5 @@ class Circuit:
                 except ValueError as e:
                     print(f"Input error for {comp}: {e}")
             else:
-                comp.input = 0   # floating
+                comp.input = 0 # floating
             comp.compute()
