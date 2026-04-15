@@ -9,6 +9,21 @@ class Component:
         self.input = 0
         self.output = 0
         
+    def get_input_positions(self) -> List[tuple]:
+        """Returns a list of (x, y) grid coordinates this component expects power from."""
+        if self.orientation == 270: return [(self.pos_x, self.pos_y - 1)] # W
+        if self.orientation == 0:   return [(self.pos_x - 1, self.pos_y)] # A
+        if self.orientation == 90:  return [(self.pos_x, self.pos_y + 1)] # S
+        if self.orientation == 180: return [(self.pos_x + 1, self.pos_y)] # D
+        return [(self.pos_x - 1, self.pos_y)] # fallback
+
+    def get_output_positions(self) -> List[tuple]:
+        """Returns a list of (x, y) grid coordinates this component sends power to."""
+        if self.orientation == 90:  return [(self.pos_x, self.pos_y - 1)] # W
+        if self.orientation == 180: return [(self.pos_x - 1, self.pos_y)] # A
+        if self.orientation == 270: return [(self.pos_x, self.pos_y + 1)] # S
+        if self.orientation == 0:   return [(self.pos_x + 1, self.pos_y)] # D
+        return [(self.pos_x + 1, self.pos_y)] # fallback        
     def compute(self):
         pass
 
@@ -62,6 +77,35 @@ class Switch(Component):
 class Wire(Component):
     def compute(self):
         self.output = self.input
+    
+    @property
+    def texture(self) -> str:
+        return "wire"
+
+
+class CrossWire(Component):
+    def compute(self):
+        self.output = self.input
+
+    def get_input_positions(self) -> List[tuple]:
+        return [
+            (self.pos_x, self.pos_y - 1), # W
+            (self.pos_x - 1, self.pos_y), # A
+            (self.pos_x, self.pos_y + 1), # S
+            (self.pos_x + 1, self.pos_y)  # D
+        ]
+
+    def get_output_positions(self) -> List[tuple]:
+        return [
+            (self.pos_x, self.pos_y - 1),
+            (self.pos_x, self.pos_y + 1),
+            (self.pos_x - 1, self.pos_y),
+            (self.pos_x + 1, self.pos_y)
+        ]
+
+    @property
+    def texture(self) -> str:
+        return "cross_wire"
 
 class Circuit:
     def __init__(self, components : List[Component]):
@@ -86,16 +130,49 @@ class Circuit:
         return self.grid.get((x, y))
 
     def simulate(self):
-        # sort components by x coordinate (left to right)
-        sorted_comps = sorted(self.components, key=lambda c: c.pos_x) # this is called an anonymous method, don't worry to much about it but you might be asked about it in the viva
-        for comp in sorted_comps:
-            # find left neighbour (input source)
-            left_comp = self.grid.get((comp.pos_x - 1, comp.pos_y))
-            if left_comp:
-                try:
-                    comp.input = left_comp.output
-                except ValueError as e:
-                    print(f"Input error for {comp}: {e}")
-            else:
-                comp.input = 0 # floating
-            comp.compute()
+        # reset board
+        for comp in self.components:
+            comp.input = 0
+            comp.output = 0
+
+        # since batteries create the signal we need to find every single instance of a battery on the grid
+        batteries = [c for c in self.components if isinstance(c, Battery)]
+        
+        # store all components that are part of proper circuit
+        powered_components = set()
+
+        for battery in batteries:
+            stack = [(battery, [battery])]
+            
+            while stack:
+                current, path = stack.pop()
+                
+                # look at all components that it gives power to
+                for target_pos in current.get_output_positions():
+                    neighbor = self.grid.get(target_pos)
+                    
+                    if not neighbor:
+                        continue
+                        
+                    if (current.pos_x, current.pos_y) not in neighbor.get_input_positions():
+                        continue 
+                            
+                    if isinstance(neighbor, Switch) and not getattr(neighbor, "_Switch__toggle", False):
+                        continue 
+                            
+                    if neighbor == battery and len(path) > 2:
+                        for comp in path:
+                            powered_components.add(comp)
+                        continue 
+                            
+                    if neighbor not in path:
+                        stack.append((neighbor, path + [neighbor]))
+
+        # power components with proper signal
+        for comp in self.components:
+            if comp in powered_components:
+                comp.input = 1
+                comp.compute()
+                # batteries output powerwires bulbs pass it along if in a loop
+                if not isinstance(comp, Bulb): 
+                    comp.output = 1
