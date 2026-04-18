@@ -31,6 +31,11 @@ class Game:
             ("Wire", Wire, "wire"),
             ("Bulb", Bulb, "bulb_off"),
             ("CrossWire", CrossWire, "cross_wire"),
+
+            ("BlueLed", BlueLed, "led_off"),
+            ("RedLed", RedLed, "led_off"),
+            ("GreenLed", GreenLed, "led_off"),
+            ("Buzzer", Buzzer, "buzzer_off"),
         ]
         self.selected_tool_index = 0
         self.tool_rects = [] # will be filled each frame

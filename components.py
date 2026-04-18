@@ -72,7 +72,57 @@ class Switch(Component):
         else:
             return "switch_off"
 
+class BlueLed(Component):
+    def compute(self):
+        if self.input >= 1:
+            self.output = 1
+        else:
+            self.output = 0
+    @property
+    def texture(self) -> str:
+        if self.input >= 1:
+            return "blue_led_on"
+        else:
+            return "led_off"
 
+class RedLed(Component):
+    def compute(self):
+        if self.input >= 1:
+            self.output = 1
+        else:
+            self.output = 0
+    @property
+    def texture(self) -> str:
+        if self.input >= 1:
+            return "red_led_on"
+        else:
+            return "led_off"
+
+class GreenLed(Component):
+    def compute(self):
+        if self.input >= 1:
+            self.output = 1
+        else:
+            self.output = 0
+    @property
+    def texture(self) -> str:
+        if self.input >= 1:
+            return "green_led_on"
+        else:
+            return "led_off"
+
+class Buzzer(Component):
+    def compute(self):
+        if self.input >= 1:
+            self.output = 1
+        else:
+            self.output = 0
+    @property
+    def texture(self) -> str:
+        if self.input >= 1:
+            return "buzzer_on"
+        else:
+            return "buzzer_off"
 
 class Wire(Component):
     def compute(self):
